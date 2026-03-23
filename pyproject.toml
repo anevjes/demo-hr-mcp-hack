@@ -1,0 +1,15 @@
+[project]
+name = "hr-mcp-server"
+version = "0.1.0"
+description = "HR MCP Server with scope-based authorization using FastMCP"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=3.0.0",
+    "azure-monitor-opentelemetry",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
