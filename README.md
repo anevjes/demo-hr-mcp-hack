@@ -46,4 +46,59 @@ fastmcp run server.py
 ## Mock Data
 
 The server ships with 7 mock employees across departments (Engineering, Data Science, HR, Finance, Operations, Executive). All data is in-memory via `hr_data.py`.
-# demo-hr-mcp-hack
+
+## Deploying to Azure Container Apps
+
+### Prerequisites
+
+- Azure CLI (`az`) installed and logged in
+- Docker installed
+- An existing Azure Container Registry (ACR)
+- An existing Container App Environment
+
+### 1. Build and push the Docker image
+
+```powershell
+.\build-and-push.ps1 -AcrName <your-acr-name>
+```
+
+This builds the image and pushes it as `<your-acr-name>.azurecr.io/hr-mcp-server:latest`.
+
+### 2. Deploy the Container App
+
+```powershell
+az deployment group create `
+  --resource-group <your-rg> `
+  --template-file infra/container-app.bicep `
+  --parameters `
+    environmentId="/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.App/managedEnvironments/<env-name>" `
+    acrLoginServer="<your-acr-name>.azurecr.io" `
+    appInsightsConnectionString="<optional-connection-string>"
+```
+
+The Bicep template (`infra/container-app.bicep`) creates a Container App with:
+- External ingress on port 8000
+- System-assigned managed identity for ACR pull
+- Application Insights telemetry (optional)
+
+### 3. Grant ACR pull permissions
+
+After deployment, assign the `AcrPull` role to the Container App's managed identity:
+
+```powershell
+# Get the principal ID from the deployment output
+$principalId = (az containerapp show --name hr-mcp-server --resource-group <your-rg> --query identity.principalId -o tsv)
+
+az role assignment create `
+  --assignee $principalId `
+  --role AcrPull `
+  --scope /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.ContainerRegistry/registries/<your-acr-name>
+```
+
+### 4. Restart the Container App
+
+After the role assignment propagates, restart to pull the image with the managed identity:
+
+```powershell
+az containerapp revision restart --name hr-mcp-server --resource-group <your-rg>
+```
