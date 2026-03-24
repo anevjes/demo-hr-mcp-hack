@@ -97,6 +97,7 @@ mcp = FastMCP(
         # automatically requires the 'restricted' scope.
         AuthMiddleware(auth=restrict_tag("restricted", scopes=["restricted"])),
     ],
+    session_state_store=None,  # No session state needed for this example (stateless)
 )
 
 
@@ -465,4 +466,4 @@ def whoami() -> dict:
 
 if __name__ == "__main__":
     logger.info("Starting HR MCP Server on 0.0.0.0:8000 (streamable-http)")
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)
