@@ -465,4 +465,4 @@ def whoami() -> dict:
 
 if __name__ == "__main__":
     logger.info("Starting HR MCP Server on 0.0.0.0:8000 (streamable-http)")
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=8000)
+    mcp.run(transport="sse", host="0.0.0.0", port=8000)
